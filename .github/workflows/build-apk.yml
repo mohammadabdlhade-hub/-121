@@ -16,32 +16,32 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
 
     - name: Set up Java JDK 17
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Cordova
-      run: npm install -g cordova
+    - name: Install Cordova and Android Dependencies
+      run: |
+        npm install -g cordova
+        # إعداد بيئة أندرويد لـ Cordova
+        sudo apt-get update
+        sudo apt-get install -y wget curl
 
-    - name: Create Cordova Project
+    - name: Create Cordova Project & Build
       run: |
         cordova create myApp com.calc.app Calculator
         cd myApp
-        # نقل ملف الهاش تي إم إل الخاص بك إلى مجلد الويب الخاص بكوردوفا
-        cp ../index.html www/index.html
         cordova platform add android
-
-    - name: Build Android APK
-      run: |
-        cd myApp
-        cordova build android --release
+        # بناء الـ APK مباشرة
+        cordova build android --debug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
-        path: myApp/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
