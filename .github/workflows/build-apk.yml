@@ -1,0 +1,47 @@
+name: Build HTML to APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Set up Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Install Cordova
+      run: npm install -g cordova
+
+    - name: Create Cordova Project
+      run: |
+        cordova create myApp com.calc.app Calculator
+        cd myApp
+        # نقل ملف الهاش تي إم إل الخاص بك إلى مجلد الويب الخاص بكوردوفا
+        cp ../index.html www/index.html
+        cordova platform add android
+
+    - name: Build Android APK
+      run: |
+        cd myApp
+        cordova build android --release
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-apk
+        path: myApp/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
